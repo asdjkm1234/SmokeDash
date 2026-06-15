@@ -317,7 +317,7 @@ function renderDeployTab(content) {
         <div class="deploy-header">
           <span class="deploy-name">${escapeHtml(cmd.name)}</span>
           <span class="deploy-slave">${escapeHtml(cmd.slave_name)}</span>
-          <button class="copy-btn" data-cmd="${escapeHtml(cmd.command)}">复制</button>
+          <button class="copy-btn" data-cmd="${btoa(unescape(encodeURIComponent(cmd.command)))}">复制</button>
         </div>
         <pre class="deploy-cmd">${escapeHtml(cmd.command)}</pre>
       </div>
@@ -338,7 +338,7 @@ function renderDeployTab(content) {
 
   content.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      copyToClipboard(btn.dataset.cmd);
+      copyToClipboard(decodeURIComponent(escape(atob(btn.dataset.cmd))));
       btn.textContent = '已复制';
       setTimeout(() => btn.textContent = '复制', 2000);
     });
