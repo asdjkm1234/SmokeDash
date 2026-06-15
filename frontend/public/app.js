@@ -382,7 +382,7 @@ function renderBackendTab(content) {
       hint.className = 'save-url-feedback error';
     }
     setTimeout(() => { btn.textContent = '保存'; }, 1500);
-    await fetchDeploy();
+    deployCommands = await fetchDeploy();
   });
 }
 
