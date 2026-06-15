@@ -1,7 +1,7 @@
 # Runtime data
 smokeping_data/
 smokeping_cache/
-data/*.db
+data/
 
 # Generated smokeping config
 smokeping_config/config
