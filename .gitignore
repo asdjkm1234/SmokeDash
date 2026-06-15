@@ -7,9 +7,6 @@ data/
 smokeping_config/config
 smokeping_config/smokeping_secrets.dist
 
-# User config
-config.json
-
 # Node
 node_modules/
 npm-debug.log
