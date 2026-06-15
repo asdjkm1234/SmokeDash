@@ -265,14 +265,12 @@ async function syncConfig() {
       fs.writeFileSync(configPath, config);
       fs.writeFileSync(secretsPath, secrets);
       fs.chmodSync(secretsPath, 0o600);
-      console.log('Config changed! Auto-restarting smokeping...');
-      try {
-        const { execSync } = require('child_process');
-        execSync('docker restart smokeping-master', { timeout: 30000 });
-        console.log('SmokePing restarted successfully');
-      } catch (err) {
-        console.error('Failed to restart smokeping:', err.message);
-      }
+      console.log('Config changed! Restarting smokeping...');
+      const { exec } = require('child_process');
+      exec('docker restart smokeping-master', { timeout: 30000 }, (err) => {
+        if (err) console.error('Failed to restart smokeping:', err.message);
+        else console.log('SmokePing restarted successfully');
+      });
     } else {
       console.log('Config unchanged');
     }

@@ -719,6 +719,20 @@ body {
   line-height: 1.5;
 }
 
+.save-url-feedback {
+  margin-top: 8px;
+  font-size: 13px;
+  min-height: 20px;
+}
+
+.save-url-feedback.success {
+  color: var(--green);
+}
+
+.save-url-feedback.error {
+  color: var(--red);
+}
+
 .deploy-list {
   display: flex;
   flex-direction: column;

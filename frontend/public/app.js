@@ -279,8 +279,11 @@ function renderNodesTab(content) {
   document.getElementById('addNodeBtn').addEventListener('click', async () => {
     const name = document.getElementById('newNodeName').value.trim();
     const err = document.getElementById('addNodeError');
+    const btn = document.getElementById('addNodeBtn');
     if (!name) { err.textContent = '请输入节点名称'; return; }
     err.textContent = '';
+    btn.textContent = '添加中...';
+    btn.disabled = true;
     try {
       await addNode(name);
       await refreshAll();
@@ -329,6 +332,7 @@ function renderDeployTab(content) {
           <input type="text" id="deployMasterUrl" value="${escapeHtml(masterUrl)}" placeholder="http://your-server-ip:8080/smokeping/smokeping.fcgi.dist">
           <button class="btn-primary" id="saveMasterUrlBtn">保存</button>
         </div>
+        <div class="save-url-feedback" id="urlSaveHint"></div>
       </div>
     </div>
     <div class="manage-section">
@@ -340,12 +344,27 @@ function renderDeployTab(content) {
 
   document.getElementById('saveMasterUrlBtn').addEventListener('click', async () => {
     const url = document.getElementById('deployMasterUrl').value.trim();
-    if (url) {
-      await saveMasterUrl(url);
-      masterUrl = url;
-      await fetchDeploy();
-      renderManageBody(document.getElementById('modalBody'));
+    if (!url) return;
+    const btn = document.getElementById('saveMasterUrlBtn');
+    const hint = document.getElementById('urlSaveHint');
+    try {
+      const data = await saveMasterUrl(url);
+      if (data.success) {
+        masterUrl = url;
+        btn.textContent = '已保存！';
+        hint.textContent = '主服务器地址已保存';
+        hint.className = 'save-url-feedback success';
+      } else {
+        hint.textContent = data.error || '保存失败';
+        hint.className = 'save-url-feedback error';
+      }
+    } catch (e) {
+      hint.textContent = '网络异常，保存失败';
+      hint.className = 'save-url-feedback error';
     }
+    setTimeout(() => { btn.textContent = '保存'; }, 1500);
+    await fetchDeploy();
+    renderManageBody(document.getElementById('modalBody'));
   });
 
   content.querySelectorAll('.copy-btn').forEach(btn => {
