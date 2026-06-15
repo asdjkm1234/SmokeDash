@@ -15,6 +15,17 @@ const CONFIG_FILE = path.join(__dirname, 'config.json');
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
+try {
+  const cfgStat = fs.statSync(CONFIG_FILE, { throwIfNoEntry: false });
+  if (cfgStat && cfgStat.isDirectory()) {
+    fs.rmSync(CONFIG_FILE, { recursive: true });
+    console.log('Removed directory placeholder, creating config.json');
+  }
+} catch (err) {}
+if (!fs.existsSync(CONFIG_FILE)) {
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify({ master_url: appConfig.master_url }, null, 2));
+}
+
 const db = new Database(path.join(DATA_DIR, 'smokedash.db'));
 db.pragma('journal_mode = WAL');
 
