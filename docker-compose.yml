@@ -30,7 +30,7 @@ services:
     environment:
       - SMOKEPING_URL=http://smokeping:80
       - DATA_DIR=/app/data
-      - ADMIN_PASSWORD=1111
+      - ADMIN_PASSWORD=
       - TZ=Asia/Shanghai
     depends_on:
       - smokeping
