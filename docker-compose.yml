@@ -5,6 +5,7 @@ services:
     ports:
       - "8080:80"
     volumes:
+      - ./start.sh:/usr/local/bin/start.sh
       - ./smokeping_config:/usr/local/smokeping/etc
       - ./smokeping_data:/usr/local/smokeping/data
       - ./smokeping_cache:/usr/local/smokeping/cache

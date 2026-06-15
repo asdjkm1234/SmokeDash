@@ -11,6 +11,7 @@ if [ -f /usr/local/smokeping/etc/smokeping_secrets.dist ]; then
 fi
 
 if [ -f /usr/local/smokeping/etc/config ]; then
+  rm -f /usr/local/smokeping/var/smokeping.pid
   /usr/local/smokeping/bin/smokeping /usr/local/smokeping/etc/config
 fi
 
