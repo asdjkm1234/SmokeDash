@@ -364,7 +364,6 @@ function renderDeployTab(content) {
     }
     setTimeout(() => { btn.textContent = '保存'; }, 1500);
     await fetchDeploy();
-    renderManageBody(document.getElementById('modalBody'));
   });
 
   content.querySelectorAll('.copy-btn').forEach(btn => {
