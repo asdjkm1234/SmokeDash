@@ -6,9 +6,13 @@ apachectl -D FOREGROUND &
 
 sleep 2
 
-chmod 600 /usr/local/smokeping/etc/smokeping_secrets.dist
+if [ -f /usr/local/smokeping/etc/smokeping_secrets.dist ]; then
+  chmod 600 /usr/local/smokeping/etc/smokeping_secrets.dist
+fi
 
-/usr/local/smokeping/bin/smokeping /usr/local/smokeping/etc/config
+if [ -f /usr/local/smokeping/etc/config ]; then
+  /usr/local/smokeping/bin/smokeping /usr/local/smokeping/etc/config
+fi
 
 sleep 2
 

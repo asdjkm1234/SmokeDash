@@ -100,7 +100,8 @@ let deployCommands = [];
 
 function loadConfig() {
   try {
-    if (fs.existsSync(CONFIG_FILE)) {
+    const stat = fs.statSync(CONFIG_FILE, { throwIfNoEntry: false });
+    if (stat && stat.isFile()) {
       const saved = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
       if (saved.master_url) appConfig.master_url = saved.master_url;
     }
