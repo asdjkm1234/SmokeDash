@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmokeDash</title>
-  <link rel="stylesheet" href="style.css?v=6">
+  <title>SmokeDash - 网络延迟监控</title>
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <div class="app">
@@ -17,9 +17,9 @@
           <h1>SmokeDash</h1>
         </div>
         <div class="header-stats">
-          <span class="header-stat"><strong id="totalNodes">-</strong> Nodes</span>
+          <span class="header-stat"><strong id="totalNodes">-</strong> 个节点</span>
           <span class="header-stat-divider">|</span>
-          <span class="header-stat">Updated <strong id="lastUpdated">-</strong></span>
+          <span class="header-stat">更新于 <strong id="lastUpdated">-</strong></span>
         </div>
         <div class="header-right">
           <button class="filter-toggle" id="filterToggle">
@@ -28,18 +28,18 @@
               <line x1="8" y1="12" x2="20" y2="12"></line>
               <line x1="12" y1="18" x2="20" y2="18"></line>
             </svg>
-            <span>Filter</span>
+            <span>筛选</span>
           </button>
           <div class="header-filters" id="headerFilters">
             <div class="filter-group" id="ispFilters">
-              <button class="filter-btn isp-btn active" data-isp="CT">CT</button>
-              <button class="filter-btn isp-btn" data-isp="CU">CU</button>
-              <button class="filter-btn isp-btn" data-isp="CM">CM</button>
+              <button class="filter-btn isp-btn active" data-isp="CT">电信</button>
+              <button class="filter-btn isp-btn" data-isp="CU">联通</button>
+              <button class="filter-btn isp-btn" data-isp="CM">移动</button>
             </div>
             <div class="filter-group" id="cityFilters">
-              <button class="filter-btn city-btn active" data-city="shenzhen">Shenzhen</button>
-              <button class="filter-btn city-btn" data-city="shanghai">Shanghai</button>
-              <button class="filter-btn city-btn" data-city="beijing">Beijing</button>
+              <button class="filter-btn city-btn active" data-city="shenzhen">深圳</button>
+              <button class="filter-btn city-btn" data-city="shanghai">上海</button>
+              <button class="filter-btn city-btn" data-city="beijing">北京</button>
             </div>
             <div class="time-range-selector">
               <button class="range-btn active" data-range="3h">3h</button>
@@ -55,7 +55,7 @@
               <line x1="8" y1="21" x2="16" y2="21"></line>
               <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
-            <span>Manage</span>
+            <span>管理</span>
           </button>
           <button class="refresh-btn" id="refreshBtn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -72,7 +72,7 @@
       <div class="nodes-grid" id="nodesGrid">
         <div class="loading-state">
           <div class="spinner"></div>
-          <p>Loading nodes...</p>
+          <p>加载中...</p>
         </div>
       </div>
     </main>
@@ -80,7 +80,7 @@
     <div class="modal-overlay" id="modalOverlay">
       <div class="modal" id="nodeModal">
         <div class="modal-header">
-          <h2 id="modalTitle">Admin Access</h2>
+          <h2 id="modalTitle">管理员登录</h2>
           <button class="modal-close" id="modalClose">&times;</button>
         </div>
         <div class="modal-body" id="modalBody"></div>
@@ -88,6 +88,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

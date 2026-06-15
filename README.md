@@ -1,62 +1,59 @@
 # SmokeDash
 
-Self-hosted SmokePing dashboard with web-based node management. Monitor network latency from your servers to multiple ISP targets.
+基于 SmokePing 的网络延迟监控面板，支持 Web 界面管理监控节点。适合监测各 VPS 到国内三大运营商（电信/联通/移动）的延迟表现。
 
-## Features
+## 特性
 
-- Web-based node management — add/remove monitoring nodes via UI (no database required)
-- Built-in SmokePing integration with auto-config generation
-- Multi-ISP latency monitoring (China Telecom / Unicom / Mobile, 3 cities each)
-- Deploy command generator for slave nodes with auto-generated strong secrets
-- Admin password protection for management panel
-- Stores data in local SQLite — zero external dependencies
+- **Web 节点管理** — 通过网页直接添加/删除监控节点，无需手动编辑配置文件
+- **自动配置生成** — 后端自动生成 SmokePing 配置文件并热重载
+- **多线路测速** — 支持电信、联通、移动三大运营商，覆盖深圳、上海、北京三个城市
+- **部署命令生成** — 自动生成 Docker 部署命令，每个节点拥有独立强随机密钥
+- **管理密码保护** — 管理面板需要密码登录，防止未授权操作
+- **零外部依赖** — 数据存储在本地 SQLite，无需 MySQL 等外部数据库
 
-## Quick Start
+## 快速开始
 
 ```bash
-# Clone the repo
 git clone https://github.com/asdjkm1234/SmokeDash.git
 cd SmokeDash
-
-# Start
 docker compose up -d
 ```
 
-- Dashboard: http://localhost:3000
-- SmokePing CGI: http://localhost:8080/smokeping/smokeping.fcgi.dist
+- 仪表盘：http://localhost:3000
+- SmokePing CGI：http://localhost:8080/smokeping/smokeping.fcgi.dist
 
-## Default Admin Password
+## 默认管理密码
 
-On first launch, the admin password is `admin123`. Click **Manage** in the top-right corner, enter the password, and change it immediately.
+首次启动后，管理密码为 `admin123`。点击右上角**管理**，输入密码登录后请立即修改。
 
-## Adding Nodes
+## 添加监控节点
 
-1. Click **Manage** → enter password → **Nodes** tab
-2. Fill in Display Name (e.g., "Tokyo VPS") and Host (IP or domain)
-3. Click **Add**
-4. The same management panel generates Docker deploy commands under the **Deploy** tab
+1. 点击右上角**管理** → 输入密码 → **节点管理**标签页
+2. 输入节点名称（如"东京 VPS"）
+3. 点击**添加**
+4. 切换到**部署命令**标签页，即可看到每个节点的 `docker run` 部署命令
 
-## Deploying Slave Nodes
+## 部署 Slave 节点
 
-For each node you add, run the generated `docker run` command on the corresponding server. The command auto-includes the master URL and shared secret.
+将生成的 `docker run` 命令在对应的节点服务器上执行即可。命令中已自动包含主服务器地址和独立密钥。
 
-The slave container image (`smokeping-slave`) sends ping results back to your master, which generates the latency charts.
+Slave 容器镜像通过 fping 将各节点到国内测速点的延迟数据上报给 Master，Master 生成延迟图表。
 
-## Architecture
+## 架构
 
 ```
-SmokeDash Master                  Slave Nodes
-┌─────────────┐                  ┌──────────┐
-│  smokeping  │◄──── fping ─────│  Node 1  │
-│  (Apache)   │                  └──────────┘
-├─────────────┤                  ┌──────────┐
-│  frontend   │                  │  Node 2  │
-│  (Express)  │                  └──────────┘
-└─────────────┘                  ┌──────────┐
-│  SQLite     │                  │  Node N  │
-└─────────────┘                  └──────────┘
+SmokeDash Master                    Slave 节点
+┌─────────────┐                   ┌──────────┐
+│  smokeping  │◄───── fping ─────│  节点 1   │
+│  (Apache)   │                   └──────────┘
+├─────────────┤                   ┌──────────┐
+│  frontend   │                   │  节点 2   │
+│  (Express)  │                   └──────────┘
+└─────────────┘                   ┌──────────┐
+│  SQLite     │                   │  节点 N   │
+└─────────────┘                   └──────────┘
 ```
 
 ## License
 
-MIT License — see [LICENSE](LICENSE)
+MIT License — 详见 [LICENSE](LICENSE)

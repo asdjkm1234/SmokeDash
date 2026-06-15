@@ -21,8 +21,8 @@ db.pragma('journal_mode = WAL');
 db.exec(`
   CREATE TABLE IF NOT EXISTS nodes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    host TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL UNIQUE,
+    secret TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
   CREATE TABLE IF NOT EXISTS settings (
@@ -38,12 +38,6 @@ function dbGetSetting(key, defaultValue) {
 
 function dbSetSetting(key, value) {
   db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, value);
-}
-
-if (!dbGetSetting('slave_secret')) {
-  const secret = crypto.randomBytes(24).toString('base64url').slice(0, 32);
-  dbSetSetting('slave_secret', secret);
-  console.log('Generated new slave secret');
 }
 
 if (!dbGetSetting('admin_password')) {
@@ -111,17 +105,8 @@ function saveConfig(config) {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify({ master_url: config.master_url }, null, 2));
 }
 
-function getSlaveSecret() {
-  return dbGetSetting('slave_secret', '');
-}
-
-function isValidHost(host) {
-  return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) ||
-         /^[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(host);
-}
-
 function getNodesFromDB() {
-  return db.prepare('SELECT id, name, host FROM nodes ORDER BY id').all();
+  return db.prepare('SELECT id, name, secret FROM nodes ORDER BY id').all();
 }
 
 function generateConfig(nodes) {
@@ -230,16 +215,14 @@ remark = Node-to-ISP latency monitoring
 }
 
 function generateSecrets(slaveList) {
-  const secret = getSlaveSecret();
-  return slaveList.map(([name]) => `${name}:${secret}`).join('\n') + '\n';
+  return slaveList.map(([name, node]) => `${name}:${node.secret}`).join('\n') + '\n';
 }
 
 function generateDeployCommands(slaveList) {
-  const secret = getSlaveSecret();
   return slaveList.map(([slaveName, node]) => ({
     slave_name: slaveName,
     name: node.name,
-    command: `# ${node.name}\ndocker run -itd \\\n  --name smokeping-slave-${slaveName.toLowerCase()} \\\n  --restart=always \\\n  -e SMOKEPING_MASTER_URL="${appConfig.master_url}" \\\n  -e SMOKEPING_SHARED_SECRET="${secret}" \\\n  -e SMOKEPING_SLAVE_NAME="${slaveName}" \\\n  smokeping-slave:latest`
+    command: `# ${node.name}\ndocker run -itd \\\n  --name smokeping-slave-${slaveName.toLowerCase()} \\\n  --restart=always \\\n  -e SMOKEPING_MASTER_URL="${appConfig.master_url}" \\\n  -e SMOKEPING_SHARED_SECRET="${node.secret}" \\\n  -e SMOKEPING_SLAVE_NAME="${slaveName}" \\\n  smokeping-slave:latest`
   }));
 }
 
@@ -279,7 +262,7 @@ async function syncConfig() {
       slaveName,
       id: node.id,
       name: node.name,
-      host: node.host
+      secret: node.secret
     }));
     deployCommands = commands;
 
@@ -329,21 +312,19 @@ app.get('/api/nodes', (req, res) => {
 });
 
 app.post('/api/nodes', requireAuth, (req, res) => {
-  const { name, host } = req.body;
-  if (!name || !host) {
-    return res.status(400).json({ error: 'Name and host are required' });
-  }
-  if (!isValidHost(host)) {
-    return res.status(400).json({ error: 'Invalid host format. Use IP or domain.' });
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Name is required' });
   }
   try {
-    const result = db.prepare('INSERT INTO nodes (name, host) VALUES (?, ?)').run(name.trim(), host.trim());
+    const secret = crypto.randomBytes(24).toString('base64url').slice(0, 32);
+    const result = db.prepare('INSERT INTO nodes (name, secret) VALUES (?, ?)').run(name.trim(), secret);
     syncConfig();
     setTimeout(() => prefetchCache(), 5000);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) {
     if (err.message.includes('UNIQUE')) {
-      return res.status(400).json({ error: 'A node with this host already exists' });
+      return res.status(400).json({ error: 'This name already exists' });
     }
     res.status(500).json({ error: err.message });
   }
@@ -396,7 +377,6 @@ app.post('/api/sync', async (req, res) => {
 app.get('/api/deploy', (req, res) => {
   res.json({
     master_url: appConfig.master_url,
-    shared_secret: getSlaveSecret(),
     commands: deployCommands
   });
 });

@@ -2,7 +2,6 @@ const API_BASE = '';
 let allNodes = [];
 let deployCommands = [];
 let masterUrl = 'http://YOUR_MASTER_IP:8080/smokeping/smokeping.fcgi.dist';
-let sharedSecret = '';
 let currentRange = '3h';
 let currentIsp = 'CT';
 let currentCity = 'shenzhen';
@@ -49,7 +48,6 @@ async function fetchDeploy() {
     const res = await fetch(`${API_BASE}/api/deploy`);
     const data = await res.json();
     masterUrl = data.master_url || masterUrl;
-    sharedSecret = data.shared_secret || '';
     return data.commands || [];
   } catch (err) {
     return [];
@@ -96,8 +94,8 @@ async function doLogin(password) {
   return false;
 }
 
-async function addNode(name, host) {
-  return apiAuth('POST', '/api/nodes', { name, host });
+async function addNode(name) {
+  return apiAuth('POST', '/api/nodes', { name });
 }
 
 async function deleteNode(id) {
@@ -114,7 +112,7 @@ async function changePassword(oldPassword, newPassword) {
 
 function renderStats() {
   document.getElementById('totalNodes').textContent = allNodes.length;
-  document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+  document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('zh-CN');
 }
 
 function createNodeCard(node) {
@@ -132,7 +130,6 @@ function createNodeCard(node) {
   card.innerHTML = `
     <div class="node-card-header">
       <span class="node-name">${escapeHtml(node.name)}</span>
-      <span class="node-host">${escapeHtml(node.host)}</span>
     </div>
     <div class="node-chart">
       <img src="${imgUrl}" alt="Chart">
@@ -146,7 +143,7 @@ function renderNodes() {
   const grid = document.getElementById('nodesGrid');
 
   if (allNodes.length === 0) {
-    grid.innerHTML = '<div class="empty-state"><p>No nodes configured. Click <strong>Manage</strong> to add your first node.</p></div>';
+    grid.innerHTML = '<div class="empty-state"><p>尚未配置节点，点击右上角<strong>管理</strong>添加第一个节点。</p></div>';
     return;
   }
 
@@ -157,30 +154,30 @@ function renderNodes() {
 }
 
 function showAuthPrompt() {
-  document.getElementById('modalTitle').textContent = 'Admin Access';
+  document.getElementById('modalTitle').textContent = '管理员登录';
   const body = document.getElementById('modalBody');
   body.innerHTML = `
     <div class="auth-form">
-      <p class="auth-hint">Enter admin password to manage nodes and settings.</p>
+      <p class="auth-hint">请输入管理密码以继续。</p>
       <div class="form-group">
-        <input type="password" id="authPassword" placeholder="Password" autofocus>
+        <input type="password" id="authPassword" placeholder="密码" autofocus>
       </div>
       <div class="form-error" id="authError"></div>
-      <button class="btn-primary btn-full" id="authSubmit">Login</button>
+      <button class="btn-primary btn-full" id="authSubmit">登录</button>
     </div>
-    <p class="auth-footer">Default password: <code>admin123</code> — change it after first login.</p>
+    <p class="auth-footer">默认密码：<code>admin123</code>，登录后请立即修改。</p>
   `;
 
   document.getElementById('authSubmit').addEventListener('click', async () => {
     const pw = document.getElementById('authPassword').value;
     const err = document.getElementById('authError');
-    if (!pw) { err.textContent = 'Password is required'; return; }
+    if (!pw) { err.textContent = '请输入密码'; return; }
     const ok = await doLogin(pw);
     if (ok) {
       err.textContent = '';
       showManagePanel();
     } else {
-      err.textContent = 'Invalid password';
+      err.textContent = '密码错误';
     }
   });
 
@@ -192,7 +189,7 @@ function showAuthPrompt() {
 }
 
 function showManagePanel() {
-  document.getElementById('modalTitle').textContent = 'Manage SmokeDash';
+  document.getElementById('modalTitle').textContent = 'SmokeDash 管理';
   const body = document.getElementById('modalBody');
   renderManageBody(body);
   document.getElementById('modalOverlay').classList.add('active');
@@ -201,9 +198,9 @@ function showManagePanel() {
 function renderManageBody(body) {
   body.innerHTML = `
     <div class="manage-tabs">
-      <button class="manage-tab ${activeTab === 'nodes' ? 'active' : ''}" data-tab="nodes">Nodes</button>
-      <button class="manage-tab ${activeTab === 'deploy' ? 'active' : ''}" data-tab="deploy">Deploy</button>
-      <button class="manage-tab ${activeTab === 'settings' ? 'active' : ''}" data-tab="settings">Settings</button>
+      <button class="manage-tab ${activeTab === 'nodes' ? 'active' : ''}" data-tab="nodes">节点管理</button>
+      <button class="manage-tab ${activeTab === 'deploy' ? 'active' : ''}" data-tab="deploy">部署命令</button>
+      <button class="manage-tab ${activeTab === 'settings' ? 'active' : ''}" data-tab="settings">设置</button>
     </div>
     <div class="manage-content" id="manageContent"></div>
   `;
@@ -228,50 +225,51 @@ function renderNodesTab(content) {
       <div class="manage-node-item">
         <div class="manage-node-info">
           <span class="manage-node-name">${escapeHtml(node.name)}</span>
-          <span class="manage-node-host">${escapeHtml(node.host)}</span>
           <span class="manage-node-slave">slave: ${escapeHtml(node.slaveName)}</span>
         </div>
-        <button class="btn-danger btn-sm" data-delete="${node.id}">Delete</button>
+        <button class="btn-danger btn-sm" data-delete="${node.id}">删除</button>
       </div>
     `;
   });
 
-  if (!nodesHtml) nodesHtml = '<p class="empty-hint">No nodes yet. Add one below.</p>';
+  if (!nodesHtml) nodesHtml = '<p class="empty-hint">暂无节点，在下方添加。</p>';
 
   content.innerHTML = `
     <div class="manage-section">
-      <h3>Add Node</h3>
+      <h3>添加节点</h3>
       <div class="add-node-form">
-        <input type="text" id="newNodeName" placeholder="Display Name">
-        <input type="text" id="newNodeHost" placeholder="IP or Domain">
-        <button class="btn-primary" id="addNodeBtn">Add</button>
+        <input type="text" id="newNodeName" placeholder="节点名称">
+        <button class="btn-primary" id="addNodeBtn">添加</button>
       </div>
       <div class="form-error" id="addNodeError"></div>
     </div>
     <div class="manage-section">
-      <h3>All Nodes (${allNodes.length})</h3>
+      <h3>全部节点 (${allNodes.length})</h3>
       <div class="manage-node-list">${nodesHtml}</div>
     </div>
   `;
 
   document.getElementById('addNodeBtn').addEventListener('click', async () => {
     const name = document.getElementById('newNodeName').value.trim();
-    const host = document.getElementById('newNodeHost').value.trim();
     const err = document.getElementById('addNodeError');
-    if (!name || !host) { err.textContent = 'Name and host are required'; return; }
+    if (!name) { err.textContent = '请输入节点名称'; return; }
     err.textContent = '';
     try {
-      await addNode(name, host);
+      await addNode(name);
       await refreshAll();
       renderManageBody(document.getElementById('modalBody'));
     } catch (e) {
-      err.textContent = e.message;
+      if (e.message && e.message.includes('already exists')) {
+        err.textContent = '节点名称已存在';
+      } else {
+        err.textContent = e.message || '添加失败';
+      }
     }
   });
 
   content.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm('Delete this node? This will remove it from monitoring.')) return;
+      if (!confirm('确定删除此节点？将从监控中移除。')) return;
       await deleteNode(parseInt(btn.dataset.delete));
       await refreshAll();
       renderManageBody(document.getElementById('modalBody'));
@@ -287,7 +285,7 @@ function renderDeployTab(content) {
         <div class="deploy-header">
           <span class="deploy-name">${escapeHtml(cmd.name)}</span>
           <span class="deploy-slave">${escapeHtml(cmd.slave_name)}</span>
-          <button class="copy-btn" data-cmd="${escapeHtml(cmd.command)}">Copy</button>
+          <button class="copy-btn" data-cmd="${escapeHtml(cmd.command)}">复制</button>
         </div>
         <pre class="deploy-cmd">${escapeHtml(cmd.command)}</pre>
       </div>
@@ -296,26 +294,19 @@ function renderDeployTab(content) {
 
   content.innerHTML = `
     <div class="manage-section">
-      <h3>Slave Deployment Commands</h3>
-      <p class="form-hint">Run each command on the corresponding node server to deploy a SmokePing slave.</p>
+      <h3>节点部署命令</h3>
+      <p class="form-hint">在各节点服务器上执行以下命令部署 SmokePing Slave。每个节点拥有独立密钥。</p>
       <div class="deploy-url-section">
-        <label for="deployMasterUrl">Master Server URL</label>
+        <label for="deployMasterUrl">主服务器地址</label>
         <div class="url-input-group">
           <input type="text" id="deployMasterUrl" value="${escapeHtml(masterUrl)}" placeholder="http://your-server-ip:8080/smokeping/smokeping.fcgi.dist">
-          <button class="btn-primary" id="saveMasterUrlBtn">Save</button>
-        </div>
-      </div>
-      <div class="deploy-secret">
-        <label>Shared Secret</label>
-        <div class="secret-display">
-          <code>${escapeHtml(sharedSecret)}</code>
-          <button class="btn-sm" id="copySecretBtn">Copy</button>
+          <button class="btn-primary" id="saveMasterUrlBtn">保存</button>
         </div>
       </div>
     </div>
     <div class="manage-section">
       <div class="deploy-list">
-        ${commandsHtml || '<p class="empty-hint">No nodes configured yet. Add nodes first.</p>'}
+        ${commandsHtml || '<p class="empty-hint">暂无节点，请先在节点管理中添加。</p>'}
       </div>
     </div>
   `;
@@ -330,18 +321,11 @@ function renderDeployTab(content) {
     }
   });
 
-  document.getElementById('copySecretBtn').addEventListener('click', () => {
-    copyToClipboard(sharedSecret);
-    const btn = document.getElementById('copySecretBtn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
-  });
-
   content.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       copyToClipboard(btn.dataset.cmd);
-      btn.textContent = 'Copied!';
-      setTimeout(() => btn.textContent = 'Copy', 2000);
+      btn.textContent = '已复制';
+      setTimeout(() => btn.textContent = '复制', 2000);
     });
   });
 }
@@ -349,24 +333,24 @@ function renderDeployTab(content) {
 function renderSettingsTab(content) {
   content.innerHTML = `
     <div class="manage-section">
-      <h3>Change Admin Password</h3>
+      <h3>修改管理密码</h3>
       <div class="settings-form">
         <div class="form-group">
-          <label for="oldPassword">Current Password</label>
-          <input type="password" id="oldPassword" placeholder="Current password">
+          <label for="oldPassword">当前密码</label>
+          <input type="password" id="oldPassword" placeholder="当前密码">
         </div>
         <div class="form-group">
-          <label for="newPassword">New Password</label>
-          <input type="password" id="newPassword" placeholder="New password">
+          <label for="newPassword">新密码</label>
+          <input type="password" id="newPassword" placeholder="新密码">
         </div>
         <div class="form-error" id="pwdError"></div>
-        <button class="btn-primary" id="changePwdBtn">Change Password</button>
+        <button class="btn-primary" id="changePwdBtn">修改密码</button>
       </div>
       <div class="form-success" id="pwdSuccess"></div>
     </div>
     <div class="manage-section">
-      <h3>Session</h3>
-      <button class="btn-danger" id="logoutBtn">Logout</button>
+      <h3>会话</h3>
+      <button class="btn-danger" id="logoutBtn">退出登录</button>
     </div>
   `;
 
@@ -378,14 +362,18 @@ function renderSettingsTab(content) {
     err.textContent = '';
     ok.textContent = '';
     if (!newPw || newPw.length < 4) {
-      err.textContent = 'New password must be at least 4 characters';
+      err.textContent = '新密码不能少于 4 位';
       return;
     }
     try {
       await changePassword(oldPw, newPw);
-      ok.textContent = 'Password changed successfully!';
+      ok.textContent = '密码修改成功！';
     } catch (e) {
-      err.textContent = e.message;
+      if (e.message && e.message.includes('incorrect')) {
+        err.textContent = '当前密码不正确';
+      } else {
+        err.textContent = e.message || '修改失败';
+      }
     }
   });
 
