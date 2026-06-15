@@ -128,9 +128,6 @@ function createNodeCard(node) {
   const imgUrl = `/api/cache/${section}/${targetId}~${node.slaveName}_last_${seconds}.png?_=${Date.now()}`;
 
   card.innerHTML = `
-    <div class="node-card-header">
-      <span class="node-name">${escapeHtml(node.name)}</span>
-    </div>
     <div class="node-chart">
       <img src="${imgUrl}" alt="Chart">
     </div>

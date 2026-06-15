@@ -229,7 +229,7 @@ function generateDeployCommands(slaveList) {
   return slaveList.map(([slaveName, node]) => ({
     slave_name: slaveName,
     name: node.name,
-    command: `# ${node.name}\ndocker run -itd \\\n  --name smokeping-slave-${slaveName.toLowerCase()} \\\n  --restart=always \\\n  -e SMOKEPING_MASTER_URL="${appConfig.master_url}" \\\n  -e SMOKEPING_SHARED_SECRET="${node.secret}" \\\n  -e SMOKEPING_SLAVE_NAME="${slaveName}" \\\n  smokeping-slave:latest`
+    command: `# ${node.name}\ndocker run -itd \\\n  --name smokeping-slave-${slaveName.toLowerCase()} \\\n  --network host \\\n  --restart=always \\\n  -e SMOKEPING_MASTER_URL="${appConfig.master_url}" \\\n  -e SMOKEPING_SHARED_SECRET="${node.secret}" \\\n  -e SMOKEPING_SLAVE_NAME="${slaveName}" \\\n  asdjkm1234/smokeping-slave:latest`
   }));
 }
 
