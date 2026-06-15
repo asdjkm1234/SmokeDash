@@ -1,0 +1,25 @@
+# Runtime data
+smokeping_data/
+smokeping_cache/
+data/*.db
+
+# Generated smokeping config
+smokeping_config/config
+smokeping_config/smokeping_secrets.dist
+
+# User config
+config.json
+
+# Node
+node_modules/
+npm-debug.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

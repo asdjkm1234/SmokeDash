@@ -1,0 +1,14 @@
+{
+  "name": "smokedash",
+  "version": "1.0.0",
+  "description": "SmokeDash - Self-hosted SmokePing Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^9.4.3",
+    "node-cron": "^3.0.3"
+  }
+}

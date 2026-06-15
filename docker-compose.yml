@@ -1,0 +1,36 @@
+services:
+  smokeping:
+    image: asdjkm1234/smokeping-master:latest
+    container_name: smokeping-master
+    ports:
+      - "8080:80"
+    volumes:
+      - ./smokeping_config:/usr/local/smokeping/etc
+      - ./smokeping_data:/usr/local/smokeping/data
+      - ./smokeping_cache:/usr/local/smokeping/cache
+    environment:
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smokedash-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config.json:/app/config.json
+      - ./data:/app/data
+      - ./smokeping_config:/app/smokeping_config
+      - ./smokeping_cache:/app/smokeping_cache
+      - ./frontend/public:/app/public
+      - ./frontend/server.js:/app/server.js
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - SMOKEPING_URL=http://smokeping:80
+      - DATA_DIR=/app/data
+      - TZ=Asia/Shanghai
+    depends_on:
+      - smokeping
+    restart: unless-stopped
