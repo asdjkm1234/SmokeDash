@@ -227,7 +227,8 @@ function renderManageBody(body) {
     <div class="manage-tabs">
       <button class="manage-tab ${activeTab === 'nodes' ? 'active' : ''}" data-tab="nodes">节点管理</button>
       <button class="manage-tab ${activeTab === 'deploy' ? 'active' : ''}" data-tab="deploy">部署命令</button>
-      <button class="manage-tab ${activeTab === 'settings' ? 'active' : ''}" data-tab="settings">设置</button>
+      <button class="manage-tab ${activeTab === 'backend' ? 'active' : ''}" data-tab="backend">后端设置</button>
+      <button class="manage-tab ${activeTab === 'settings' ? 'active' : ''}" data-tab="settings">安全设置</button>
     </div>
     <div class="manage-content" id="manageContent"></div>
   `;
@@ -242,6 +243,7 @@ function renderManageBody(body) {
   const content = document.getElementById('manageContent');
   if (activeTab === 'nodes') renderNodesTab(content);
   else if (activeTab === 'deploy') renderDeployTab(content);
+  else if (activeTab === 'backend') renderBackendTab(content);
   else if (activeTab === 'settings') renderSettingsTab(content);
 }
 
@@ -326,18 +328,35 @@ function renderDeployTab(content) {
     <div class="manage-section">
       <h3>节点部署命令</h3>
       <p class="form-hint">在各节点服务器上执行以下命令部署 SmokePing Slave。每个节点拥有独立密钥。</p>
+    </div>
+    <div class="manage-section">
+      <div class="deploy-list">
+        ${commandsHtml || '<p class="empty-hint">暂无节点，请先在节点管理中添加。</p>'}
+      </div>
+    </div>
+  `;
+
+  content.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      copyToClipboard(btn.dataset.cmd);
+      btn.textContent = '已复制';
+      setTimeout(() => btn.textContent = '复制', 2000);
+    });
+  });
+}
+
+function renderBackendTab(content) {
+  content.innerHTML = `
+    <div class="manage-section">
+      <h3>SmokePing 后端地址</h3>
+      <p class="form-hint">SmokePing Master 的 CGI 地址，Slave 节点将向此地址上报数据。</p>
       <div class="deploy-url-section">
-        <label for="deployMasterUrl">主服务器地址</label>
+        <label for="deployMasterUrl">后端地址</label>
         <div class="url-input-group">
           <input type="text" id="deployMasterUrl" value="${escapeHtml(masterUrl)}" placeholder="http://your-server-ip:8080/smokeping/smokeping.fcgi.dist">
           <button class="btn-primary" id="saveMasterUrlBtn">保存</button>
         </div>
         <div class="save-url-feedback" id="urlSaveHint"></div>
-      </div>
-    </div>
-    <div class="manage-section">
-      <div class="deploy-list">
-        ${commandsHtml || '<p class="empty-hint">暂无节点，请先在节点管理中添加。</p>'}
       </div>
     </div>
   `;
@@ -352,7 +371,7 @@ function renderDeployTab(content) {
       if (data.success) {
         masterUrl = url;
         btn.textContent = '已保存！';
-        hint.textContent = '主服务器地址已保存';
+        hint.textContent = '后端地址已保存';
         hint.className = 'save-url-feedback success';
       } else {
         hint.textContent = data.error || '保存失败';
@@ -364,14 +383,6 @@ function renderDeployTab(content) {
     }
     setTimeout(() => { btn.textContent = '保存'; }, 1500);
     await fetchDeploy();
-  });
-
-  content.querySelectorAll('.copy-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      copyToClipboard(btn.dataset.cmd);
-      btn.textContent = '已复制';
-      setTimeout(() => btn.textContent = '复制', 2000);
-    });
   });
 }
 
