@@ -165,7 +165,14 @@ function showAuthPrompt() {
       <div class="form-error" id="authError"></div>
       <button class="btn-primary btn-full" id="authSubmit">登录</button>
     </div>
-    <p class="auth-footer">默认密码：<code>admin123</code>，登录后请立即修改。</p>
+    <p class="auth-footer">默认密码：<code>admin123</code>，登录后请立即修改。<span class="forgot-link" id="forgotLink">忘记密码？</span></p>
+    <div class="forgot-tooltip" id="forgotTooltip">
+      <div>忘记密码？按以下步骤重置：</div>
+      <div>1. 编辑 docker-compose.yml，设置 ADMIN_PASSWORD=新密码</div>
+      <div>2. 执行 docker compose up -d</div>
+      <div>3. 用新密码重新登录</div>
+      <div>4. 后续如需在线修改密码，请删除 ADMIN_PASSWORD=新密码</div>
+    </div>
   `;
 
   document.getElementById('authSubmit').addEventListener('click', async () => {
@@ -184,6 +191,29 @@ function showAuthPrompt() {
   document.getElementById('authPassword').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('authSubmit').click();
   });
+
+  let tooltipTimer = null;
+  const forgotLink = document.getElementById('forgotLink');
+  const forgotTooltip = document.getElementById('forgotTooltip');
+
+  function showTooltip() {
+    clearTimeout(tooltipTimer);
+    const rect = forgotLink.getBoundingClientRect();
+    forgotTooltip.style.top = (rect.top - 6) + 'px';
+    forgotTooltip.style.left = (rect.left + rect.width / 2) + 'px';
+    forgotTooltip.classList.add('visible');
+  }
+
+  function hideTooltip() {
+    tooltipTimer = setTimeout(() => {
+      forgotTooltip.classList.remove('visible');
+    }, 200);
+  }
+
+  forgotLink.addEventListener('mouseenter', showTooltip);
+  forgotLink.addEventListener('mouseleave', hideTooltip);
+  forgotTooltip.addEventListener('mouseenter', () => clearTimeout(tooltipTimer));
+  forgotTooltip.addEventListener('mouseleave', hideTooltip);
 
   document.getElementById('modalOverlay').classList.add('active');
 }

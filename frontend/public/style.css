@@ -419,6 +419,45 @@ body {
   font-size: 12px;
 }
 
+.forgot-link {
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.forgot-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  background: #1a1d27;
+  color: #e0e2e8;
+  font-size: 13px;
+  line-height: 1.9;
+  padding: 12px 16px;
+  border-radius: 8px;
+  white-space: nowrap;
+  pointer-events: auto;
+  user-select: text;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s;
+  z-index: 400;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.forgot-tooltip.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.forgot-tooltip div:first-child {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
 .form-group {
   margin-bottom: 12px;
 }

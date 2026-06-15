@@ -40,6 +40,15 @@ function dbSetSetting(key, value) {
   db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, value);
 }
 
+const envPassword = process.env.ADMIN_PASSWORD;
+if (envPassword) {
+  const dbPass = dbGetSetting('admin_password', '');
+  if (envPassword !== dbPass) {
+    dbSetSetting('admin_password', envPassword);
+    console.log('Admin password reset via ADMIN_PASSWORD env');
+  }
+}
+
 if (!dbGetSetting('admin_password')) {
   dbSetSetting('admin_password', 'admin123');
   console.log('Default admin password set: admin123');
@@ -199,10 +208,8 @@ remark = Node-to-ISP latency monitoring
     config += `title = ${isp.title}\n`;
     if (allSlaveNames) {
       config += `slaves = ${allSlaveNames}\n`;
-      config += `nomasterpoll=yes\n\n`;
-    } else {
-      config += '\n';
     }
+    config += `nomasterpoll=yes\n\n`;
     for (const target of isp.targets) {
       config += `++ ${target.id}\n`;
       config += `menu = ${target.name}\n`;
@@ -557,10 +564,12 @@ app.get('/api/overview', async (req, res) => {
 
 loadConfig();
 
-syncConfig().then(() => {
-  cron.schedule('*/5 * * * *', syncConfig);
-  console.log('Config sync scheduled every 5 minutes');
-});
+setTimeout(() => {
+  syncConfig().then(() => {
+    cron.schedule('*/5 * * * *', syncConfig);
+    console.log('Config sync scheduled every 5 minutes');
+  });
+}, 10000);
 
 cron.schedule('*/5 * * * *', prefetchCache);
 prefetchCache();
